@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  cpu-interpret-mode:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Unit tests (Pallas TPU interpret mode on CPU)
+        env:
+          JAX_PLATFORMS: cpu
+          FERRITE_DETECT_RACES: "0"
+        run: pytest -n auto -q
+      - name: Benchmark scripts smoke test
+        env:
+          JAX_PLATFORMS: cpu
+        run: |
+          python benchmarks/bench_kernels.py --quick --out results/ci/kernels.json
+          python benchmarks/bench_serve.py --quick --out results/ci/serve.json
+          python -m ferrite.model.train --steps 6 --batch 8 --seq 128 --layers 1 --d-model 128 --heads 1 --d-ff 256 --data synthetic --out results/ci/train.json
+          python benchmarks/make_report.py results

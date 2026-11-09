@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ferrite-tpu"
+version = "0.1.0"
+description = "Pallas TPU kernels, a sharded JAX transformer trained with them, roofline-checked profiling and AOT-compiled serving."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Anand Abasaheb Chavan" }]
+dependencies = ["jax>=0.7", "numpy>=1.26", "flatbuffers>=23"]
+
+[project.optional-dependencies]
+tpu = ["jax[tpu]>=0.7"]
+dev = ["pytest>=8", "pytest-xdist>=3"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+filterwarnings = ["ignore::DeprecationWarning"]
