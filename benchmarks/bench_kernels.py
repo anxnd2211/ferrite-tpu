@@ -23,6 +23,16 @@ from ferrite.kernels.rmsnorm import rmsnorm, rmsnorm_reference  # noqa: E402
 from ferrite.profiling import analyze, compile_report, format_table, timeit  # noqa: E402
 
 
+def _try_time(fn, *args, iters):
+    """Time fn, or return the error so one failing shape does not end the benchmark."""
+    try:
+        return timeit(fn, *args, iters=iters), None
+    except Exception as e:  # noqa: BLE001
+        msg = str(e).splitlines()[0][:200] if str(e) else type(e).__name__
+        print(f"  !! {type(e).__name__}: {msg}")
+        return None, f"{type(e).__name__}: {msg}"
+
+
 def bench_matmul(shapes, iters):
     rows, points = [], []
     for m, k, n in shapes:
@@ -31,7 +41,10 @@ def bench_matmul(shapes, iters):
         flops = matmul_flops(m, n, k)
         bytes_ = (m * k + k * n + m * n) * 2
         for name, fn in [("pallas", jax.jit(matmul)), ("xla", jax.jit(matmul_reference))]:
-            t = timeit(fn, x, y, iters=iters)
+            t, err = _try_time(fn, x, y, iters=iters)
+            if err:
+                rows.append({"shape": [m, k, n], "impl": name, "error": err})
+                continue
             p = analyze(f"matmul {m}x{k}x{n} {name}", flops, bytes_, t.median_s)
             points.append(p)
             rows.append({"shape": [m, k, n], "impl": name, **p.to_dict(), "ms": t.median_ms})
@@ -47,7 +60,10 @@ def bench_rmsnorm(shapes, iters):
         flops = 5 * r * d
         bytes_ = 4 * r * d * 2  # read x, residual; write h, y
         for name, fn in [("pallas", jax.jit(lambda x, w, res: rmsnorm(x, w, residual=res))), ("xla", jax.jit(lambda x, w, res: rmsnorm_reference(x, w, residual=res)))]:
-            t = timeit(fn, x, w, res, iters=iters)
+            t, err = _try_time(fn, x, w, res, iters=iters)
+            if err:
+                rows.append({"shape": [r, d], "impl": name, "error": err})
+                continue
             p = analyze(f"add+rmsnorm {r}x{d} {name}", flops, bytes_, t.median_s)
             points.append(p)
             rows.append({"shape": [r, d], "impl": name, **p.to_dict(), "ms": t.median_ms})
@@ -85,7 +101,10 @@ def bench_attention(shapes, iters, include_official):
         fwd_flops = attention_flops(b, h, s, s, d, causal=True)
         bytes_ = 4 * b * h * s * d * 2  # q, k, v read + o written (bf16)
         for name, fn in impls:
-            t = timeit(fn, q, k, v, iters=iters)
+            t, err = _try_time(fn, q, k, v, iters=iters)
+            if err:
+                rows.append({"shape": [b, h, s, d], "impl": name, "pass": "fwd", "error": err})
+                continue
             p = analyze(f"attn fwd b{b} h{h} s{s} d{d} {name}", fwd_flops, bytes_, t.median_s)
             points.append(p)
             rows.append({"shape": [b, h, s, d], "impl": name, "pass": "fwd", **p.to_dict(), "ms": t.median_ms})
@@ -93,7 +112,10 @@ def bench_attention(shapes, iters, include_official):
         cot = jnp.ones((b, h, s, d), jnp.bfloat16)
         for name, fn in impls[:2]:
             g = jax.jit(jax.grad(lambda q, k, v, _f=fn: jnp.sum(_f(q, k, v).astype(jnp.float32) * cot), argnums=(0, 1, 2)))
-            t = timeit(g, q, k, v, iters=max(2, iters // 2))
+            t, err = _try_time(g, q, k, v, iters=max(2, iters // 2))
+            if err:
+                rows.append({"shape": [b, h, s, d], "impl": name, "pass": "fwd+bwd", "error": err})
+                continue
             p = analyze(f"attn fwd+bwd b{b} h{h} s{s} d{d} {name}", attention_flops(b, h, s, s, d, causal=True, backward=True) + fwd_flops, bytes_ * 3, t.median_s)
             points.append(p)
             rows.append({"shape": [b, h, s, d], "impl": name, "pass": "fwd+bwd", **p.to_dict(), "ms": t.median_ms})

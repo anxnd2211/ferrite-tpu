@@ -31,6 +31,9 @@ def report(d: str) -> str:
             out.append(f"## {title}\n")
             out.append("| shape | pass | impl | ms | TFLOP/s | GB/s | bound | % of roof |\n|---|---|---|---:|---:|---:|---|---:|")
             for r in k[section]:
+                if "error" in r:
+                    out.append(f"| {'x'.join(map(str, r['shape']))} | {r.get('pass', 'fwd')} | {r['impl']} | failed: {r['error'][:60]} | | | | |")
+                    continue
                 out.append(f"| {'x'.join(map(str, r['shape']))} | {r.get('pass', 'fwd')} | {r['impl']} | {_fmt(r['ms'], 3)} | {_fmt(r['achieved_tflops'])} | {_fmt(r['achieved_gbps'], 0)} | {r['bound']} | {_fmt(r['percent_of_roof'], 0)} |")
             out.append("")
         h = k.get("hlo_flash_attention_fwd", {})
