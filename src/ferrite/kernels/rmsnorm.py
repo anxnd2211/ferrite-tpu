@@ -66,8 +66,8 @@ _TARGET_BLOCK_BYTES = 4 << 20
 
 def _rows_block(n_rows: int, dim: int, block_rows: int | None) -> int:
     if block_rows is None:
-        fit = _TARGET_BLOCK_BYTES // (dim * 20)
-        fit = max(platform.SUBLANES, fit - fit % platform.SUBLANES)
+        fit = max(platform.SUBLANES, _TARGET_BLOCK_BYTES // (dim * 20))
+        fit = 1 << (fit.bit_length() - 1)  # largest power of two that fits
         block_rows = min(256, fit, round_up(n_rows, platform.SUBLANES))
     if block_rows % platform.SUBLANES:
         raise ValueError(f"block_rows must be a multiple of {platform.SUBLANES}")
