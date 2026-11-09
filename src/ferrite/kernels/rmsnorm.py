@@ -56,9 +56,19 @@ def _add_rmsnorm_kernel(x_ref, r_ref, w_ref, h_ref, o_ref, *, eps: float, true_d
     o_ref[...] = (h * inv * w_ref[...].astype(jnp.float32)).astype(o_ref.dtype)
 
 
-def _rows_block(n_rows: int, block_rows: int | None) -> int:
+# Per-block working set to aim for. The kernel holds two bf16 input blocks, two output
+# blocks (all double-buffered by the pipeline) and f32 temporaries of the same shape,
+# so a (rows, dim) block costs roughly rows*dim*20 bytes of VMEM. Mosaic's default
+# scoped VMEM limit is a few tens of MiB on every generation, well under the physical
+# 16-128 MiB, and a 256 x 4096 block blew through it on a v5e.
+_TARGET_BLOCK_BYTES = 4 << 20
+
+
+def _rows_block(n_rows: int, dim: int, block_rows: int | None) -> int:
     if block_rows is None:
-        block_rows = 256 if n_rows >= 256 else round_up(n_rows, platform.SUBLANES)
+        fit = _TARGET_BLOCK_BYTES // (dim * 20)
+        fit = max(platform.SUBLANES, fit - fit % platform.SUBLANES)
+        block_rows = min(256, fit, round_up(n_rows, platform.SUBLANES))
     if block_rows % platform.SUBLANES:
         raise ValueError(f"block_rows must be a multiple of {platform.SUBLANES}")
     return block_rows
@@ -67,8 +77,9 @@ def _rows_block(n_rows: int, block_rows: int | None) -> int:
 def _call(kernel, arrays, n_out, *, rows, dim, block_rows, out_dtype, eps):
     """Shared pallas_call plumbing: pad rows/features, run, slice back."""
     true_dim = dim
-    bm = _rows_block(rows, block_rows)
-    rows_p, dim_p = round_up(rows, bm), round_up(dim, _LANES)
+    dim_p = round_up(dim, _LANES)
+    bm = _rows_block(rows, dim_p, block_rows)
+    rows_p = round_up(rows, bm)
     padded = []
     for a in arrays:
         if a.ndim == 1:  # weight -> (1, dim_p)
