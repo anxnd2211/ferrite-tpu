@@ -155,7 +155,10 @@ python benchmarks/bench_serve.py --quick
 ```
 
 On a TPU (`pip install -U "jax[tpu]"`), the same commands run the real kernels;
-`notebooks/kaggle_tpu.ipynb` strings them together and zips the results.
+`notebooks/kaggle_tpu.ipynb` strings them together and zips the results. Each
+stage is its own process because a TPU chip is owned by exactly one process:
+a notebook kernel that has imported JAX locks every subprocess out with
+`ABORTED: The TPU is already in use`.
 
 ## Decisions worth arguing about
 

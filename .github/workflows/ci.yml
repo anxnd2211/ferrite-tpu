@@ -31,6 +31,7 @@ jobs:
           JAX_PLATFORMS: cpu
         run: |
           python benchmarks/bench_kernels.py --quick --out results/ci/kernels.json
-          python benchmarks/bench_serve.py --quick --out results/ci/serve.json
+          python benchmarks/bench_serve.py --quick
+          python benchmarks/trace_attention.py --quick --out results/ci/serve.json
           python -m ferrite.model.train --steps 6 --batch 8 --seq 128 --layers 1 --d-model 128 --heads 1 --d-ff 256 --data synthetic --out results/ci/train.json
           python benchmarks/make_report.py results
