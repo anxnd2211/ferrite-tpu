@@ -2,8 +2,9 @@
 
 Pallas TPU kernels, a sharded JAX transformer trained with them, roofline-checked
 profiling and ahead-of-time-compiled serving, in one small repository. It goes from
-a hand-written MXU kernel to tokens-per-second on a decode loop, and every claim in
-it is backed by a test or a benchmark script rather than a sentence.
+a hand-written MXU kernel to tokens-per-second on a decode loop, every claim in
+it is backed by a test or a benchmark script, and the numbers below were measured
+on a real TPU v5e.
 
 [![ci](https://github.com/anxnd2211/ferrite-tpu/actions/workflows/ci.yml/badge.svg)](https://github.com/anxnd2211/ferrite-tpu/actions/workflows/ci.yml)
 
@@ -40,7 +41,7 @@ it is backed by a test or a benchmark script rather than a sentence.
 | Serving engine | `src/ferrite/serving/engine.py` | Prompt buckets, static `[L,B,H,T,d]` KV cache, `lower().compile()` ahead of time, `jax.export` |
 | Profiling | `src/ferrite/profiling/` | `timeit`, roofline bookkeeping, HLO report, `jax.profiler` trace context manager |
 | Tests | `tests/` | 38 tests; run on CPU through Pallas **TPU interpret mode**, including the data-race detector |
-| Real-TPU run | `notebooks/kaggle_tpu.ipynb` | Tests, benchmarks, training, serving and a trace on a Kaggle/Colab TPU |
+| Real-TPU run | `notebooks/kaggle_tpu.ipynb` | Tests, benchmarks, training, serving and a trace on a Colab or Kaggle TPU |
 
 ## Kernel design notes
 
@@ -120,15 +121,109 @@ interpret mode, which simulates HBM/VMEM, DMAs and semaphores. Interpret mode
 cannot catch Mosaic lowering errors, so the notebook runs the same test-suite on
 the real chip first.
 
-## Results
+## Results (TPU v5e, one chip)
 
-Numbers are produced by the scripts, written to `results/<device>/*.json`, and
-rendered into `results/<device>/REPORT.md` by `benchmarks/make_report.py`.
-Nothing in a report is typed by hand.
+Measured 2026-11-10 on a Colab TPU v5e-1 with JAX 0.12.0.1. Every number below
+was written by the scripts into [`results/tpu-v5-lite/`](results/tpu-v5-lite/)
+(JSON, the generated [`REPORT.md`](results/tpu-v5-lite/REPORT.md) and a
+profiler trace); nothing is typed by hand. Chip peaks from JAX's table: 197 bf16
+TFLOP/s, 820 GB/s HBM, ridge point 240 FLOP/byte.
 
-**Status:** pending the first real-TPU run (`notebooks/kaggle_tpu.ipynb`). This
-README will link the report here once it exists. CPU interpret-mode timings are
-deliberately excluded because they measure the interpreter, not the kernel.
+**Hardware validation.** The full test-suite passes on the chip: 37 passed, 1
+skipped (the race detector is interpret-only). Three things interpret mode could
+not see surfaced on the first hardware run and are fixed: a TPU chip is owned by
+one process, so a notebook kernel that imports JAX locks every subprocess out; a
+bf16 dot with `precision=None` inherits the process-wide
+`jax_default_matmul_precision`, and "highest" (set by the test-suite for its f32
+references) asks Mosaic for an fp32 contraction it cannot legalize on bf16; and a
+256 x 4096 RMSNorm block exceeds Mosaic's scoped VMEM limit, so the row block now
+scales with the feature dim.
+
+### Causal flash attention (bf16, head_dim 128)
+
+| shape b x h x s | pass | ferrite Pallas | JAX's Pallas flash attention | XLA fused attention |
+|---|---|---:|---:|---:|
+| 4 x 8 x 1024 | fwd | 0.96 ms | 0.95 ms | **0.66 ms** |
+| 4 x 8 x 2048 | fwd | 3.01 ms | 2.93 ms | **1.83 ms** |
+| 2 x 8 x 4096 | fwd | **5.55 ms** | 5.43 ms | 8.14 ms |
+| 1 x 8 x 8192 | fwd | **10.4 ms** | 10.2 ms | 225.0 ms |
+| 4 x 8 x 1024 | fwd+bwd | 2.23 ms | | **1.35 ms** |
+| 4 x 8 x 2048 | fwd+bwd | 8.22 ms | | **5.51 ms** |
+| 2 x 8 x 4096 | fwd+bwd | 15.4 ms | | **15.0 ms** |
+| 1 x 8 x 8192 | fwd+bwd | **28.8 ms** | | 238.5 ms |
+
+The kernel lands within 2-3% of JAX's own Pallas flash attention at every
+length, which is the strongest evidence that the tiling, the skip logic and the
+online softmax are right. XLA's fused attention wins up to 2048 tokens, where an
+s x s f32 score block is cheap to materialise; at 4096 the Pallas kernel is 1.5x
+faster and at 8192 it is 21x faster forward and 8x forward+backward, because XLA
+starts spilling the score matrix. Achieved MXU rate is 9-17 TFLOP/s (5-8% of
+peak) for both my kernel and JAX's: with 128 x 128 blocks the kernel is bound by
+the `exp` on the vector/transcendental units and by per-grid-step overhead, not by
+the MXU or HBM. That is the main optimisation left (see next steps).
+
+### Fused add + RMSNorm (bf16)
+
+| rows x dim | Pallas | XLA | Pallas GB/s | % of HBM roof |
+|---|---:|---:|---:|---:|
+| 8192 x 1024 | 0.40 ms | **0.39 ms** | 166 | 20% |
+| 32768 x 2048 | **1.09 ms** | 1.47 ms | 494 | 60% |
+| 65536 x 4096 | **3.62 ms** | 5.08 ms | 593 | 72% |
+
+Memory-bound as predicted (0.6 FLOP/byte against a ridge of 240). The small
+case is launch and pipeline-fill overhead; at scale the fused kernel moves 1.4x
+the bytes per second of XLA's fusion and reaches 72% of HBM bandwidth.
+
+### Matmul (bf16 in, f32 accumulate)
+
+| M = N = K | Pallas | XLA | Pallas TFLOP/s (% peak) | XLA TFLOP/s (% peak) |
+|---|---:|---:|---:|---:|
+| 1024 | 0.16 ms | 0.16 ms | 13 (7%) | 13 (7%) |
+| 2048 | 0.32 ms | **0.29 ms** | 54 (27%) | 59 (30%) |
+| 4096 | 1.19 ms | **0.94 ms** | 116 (59%) | 146 (74%) |
+| 8192 | 7.63 ms | **6.16 ms** | 144 (73%) | 178 (91%) |
+
+XLA's `dot` is 20% faster at scale, as the design notes said it would be: the
+kernel uses one fixed 512-tile and a single accumulator, while XLA tunes tile
+shapes per problem and overlaps more. The kernel's job here is to make the
+pipelining model explicit and to anchor the roofline tooling; 73% of peak from
+twenty lines of kernel is the useful datapoint.
+
+### Training (13M params, 4 layers, d_model 512, seq 512, batch 64, 300 steps)
+
+| configuration | step (median) | tokens/s | TFLOP/s | MFU | loss |
+|---|---:|---:|---:|---:|---|
+| Pallas attention + norm, XLA linear | **45.5 ms** | **720,100** | 59.5 | **30.2%** | 5.72 -> 1.92 |
+| all XLA | 47.3 ms | 692,541 | 57.2 | 29.0% | 5.72 -> 1.92 |
+| Pallas attention + norm + linear | 59.8 ms | 547,906 | 45.3 | 23.0% | 5.72 -> 1.92 |
+
+Same seed and data order in all three, and the loss curves agree to three
+decimals: the kernels change speed, not the math. The Pallas attention and norm
+path is 4% faster per step than XLA on this one-chip run; routing the dense
+layers through the Pallas matmul costs 24%, consistent with the matmul table.
+The XLA cost model counts 0.96x the analytic FLOPs for the Pallas path (it
+trusts the kernels' `cost_estimate`) and 1.09x for pure XLA.
+
+### Serving (same model, max_len 512, 100-token prompts, 128 generated tokens)
+
+| batch | prefill | TTFT | inter-token latency (median / p99) | tokens/s |
+|---:|---|---:|---:|---:|
+| 1 | Pallas | 0.73 ms | 0.41 / 0.45 ms | 1,462 |
+| 8 | Pallas | 1.03 ms | 0.75 / 0.89 ms | 7,704 |
+| 32 | Pallas | 1.90 ms | 2.08 / 2.26 ms | **13,665** |
+| 32 | XLA | 1.99 ms | 2.15 / 2.23 ms | 13,098 |
+
+Exactly four compiles (three prompt buckets plus decode) whatever the traffic,
+and the exported decode step is 17 KB of StableHLO. Decode is bandwidth-bound:
+from batch 1 to 32 the per-token latency grows 5x while throughput grows 9x.
+
+### Compiler view
+
+The flash-attention forward compiles to one `tpu_custom_call` and zero XLA
+fusions. The profiler trace in `results/tpu-v5-lite/trace/` holds five
+iterations each of the Pallas and XLA forward+backward at 4 x 8 x 2048 x 128;
+open it with `tensorboard --logdir results/tpu-v5-lite/trace` or upload the
+`.xplane.pb` to https://ui.perfetto.dev.
 
 ## Roofline method
 
@@ -182,6 +277,9 @@ a notebook kernel that has imported JAX locks every subprocess out with
 - No segment IDs / packed sequences, no sliding window, no soft-capping.
 - Backward kernels use one tile size for both axes; a `block_q != block_k`
   backward is supported by the validation but not tuned.
+- The attention kernel is transcendental-bound at 128 x 128 blocks (same ceiling
+  as JAX's own kernel). Next: 256- or 512-row query blocks on chips with 128 MiB
+  VMEM, `exp` in bf16 where the tolerance allows, and fewer grid steps per head.
 - Next: a Pallas paged-attention decode kernel with a `[num_pages, page_size]`
   cache, int8 weight-only quantisation with a fused dequant epilogue in the
   matmul, and a tensor-parallel variant of the MLP with `shard_map`.

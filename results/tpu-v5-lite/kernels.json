@@ -1,0 +1,697 @@
+{
+  "platform": {
+    "backend": "tpu",
+    "device_kind": "TPU v5 lite",
+    "num_devices": 1,
+    "jax_version": "0.12.0.1",
+    "chip": "TPU_V5E",
+    "cores_per_device": 1,
+    "peak_bf16_tflops": 197.0,
+    "peak_hbm_gbps": 820.0,
+    "vmem_mib": 128.0,
+    "ridge_point_flop_per_byte": 240.2439024390244
+  },
+  "quick": false,
+  "matmul": [
+    {
+      "shape": [
+        1024,
+        1024,
+        1024
+      ],
+      "impl": "pallas",
+      "name": "matmul 1024x1024x1024 pallas",
+      "flops": 2147483648.0,
+      "bytes": 6291456.0,
+      "seconds": 0.00016162999986590876,
+      "intensity_flop_per_byte": 341.3333333333333,
+      "achieved_tflops": 13.286417433530856,
+      "achieved_gbps": 38.92505107479743,
+      "bound": "compute",
+      "percent_of_roof": 6.744374331741552,
+      "ms": 0.16162999986590876
+    },
+    {
+      "shape": [
+        1024,
+        1024,
+        1024
+      ],
+      "impl": "xla",
+      "name": "matmul 1024x1024x1024 xla",
+      "flops": 2147483648.0,
+      "bytes": 6291456.0,
+      "seconds": 0.00016247999974439153,
+      "intensity_flop_per_byte": 341.3333333333333,
+      "achieved_tflops": 13.216910705184358,
+      "achieved_gbps": 38.7214180815948,
+      "bound": "compute",
+      "percent_of_roof": 6.7090917285199785,
+      "ms": 0.16247999974439153
+    },
+    {
+      "shape": [
+        2048,
+        2048,
+        2048
+      ],
+      "impl": "pallas",
+      "name": "matmul 2048x2048x2048 pallas",
+      "flops": 17179869184.0,
+      "bytes": 25165824.0,
+      "seconds": 0.00031989000012799806,
+      "intensity_flop_per_byte": 682.6666666666666,
+      "achieved_tflops": 53.705552462176975,
+      "achieved_gbps": 78.67024286451706,
+      "bound": "compute",
+      "percent_of_roof": 27.261701757450243,
+      "ms": 0.31989000012799806
+    },
+    {
+      "shape": [
+        2048,
+        2048,
+        2048
+      ],
+      "impl": "xla",
+      "name": "matmul 2048x2048x2048 xla",
+      "flops": 17179869184.0,
+      "bytes": 25165824.0,
+      "seconds": 0.00028930500002388726,
+      "intensity_flop_per_byte": 682.6666666666666,
+      "achieved_tflops": 59.38324322974542,
+      "achieved_gbps": 86.98717269982238,
+      "bound": "compute",
+      "percent_of_roof": 30.14377828921087,
+      "ms": 0.28930500002388726
+    },
+    {
+      "shape": [
+        4096,
+        4096,
+        4096
+      ],
+      "impl": "pallas",
+      "name": "matmul 4096x4096x4096 pallas",
+      "flops": 137438953472.0,
+      "bytes": 100663296.0,
+      "seconds": 0.0011889250001786422,
+      "intensity_flop_per_byte": 1365.3333333333333,
+      "achieved_tflops": 115.59934684807627,
+      "achieved_gbps": 84.66749036724336,
+      "bound": "compute",
+      "percent_of_roof": 58.67987149648542,
+      "ms": 1.1889250001786422
+    },
+    {
+      "shape": [
+        4096,
+        4096,
+        4096
+      ],
+      "impl": "xla",
+      "name": "matmul 4096x4096x4096 xla",
+      "flops": 137438953472.0,
+      "bytes": 100663296.0,
+      "seconds": 0.0009386349997839716,
+      "intensity_flop_per_byte": 1365.3333333333333,
+      "achieved_tflops": 146.42427940960204,
+      "achieved_gbps": 107.24434527070461,
+      "bound": "compute",
+      "percent_of_roof": 74.3270453855848,
+      "ms": 0.9386349997839716
+    },
+    {
+      "shape": [
+        8192,
+        8192,
+        8192
+      ],
+      "impl": "pallas",
+      "name": "matmul 8192x8192x8192 pallas",
+      "flops": 1099511627776.0,
+      "bytes": 402653184.0,
+      "seconds": 0.007634344000052806,
+      "intensity_flop_per_byte": 2730.6666666666665,
+      "achieved_tflops": 144.02175586643656,
+      "achieved_gbps": 52.74234223624386,
+      "bound": "compute",
+      "percent_of_roof": 73.10749028753125,
+      "ms": 7.634344000052806
+    },
+    {
+      "shape": [
+        8192,
+        8192,
+        8192
+      ],
+      "impl": "xla",
+      "name": "matmul 8192x8192x8192 xla",
+      "flops": 1099511627776.0,
+      "bytes": 402653184.0,
+      "seconds": 0.006158404000188966,
+      "intensity_flop_per_byte": 2730.6666666666665,
+      "achieved_tflops": 178.5384050384259,
+      "achieved_gbps": 65.38271668887668,
+      "bound": "compute",
+      "percent_of_roof": 90.62863199920098,
+      "ms": 6.158404000188966
+    }
+  ],
+  "rmsnorm": [
+    {
+      "shape": [
+        8192,
+        1024
+      ],
+      "impl": "pallas",
+      "name": "add+rmsnorm 8192x1024 pallas",
+      "flops": 41943040.0,
+      "bytes": 67108864.0,
+      "seconds": 0.00040333000015380094,
+      "intensity_flop_per_byte": 0.625,
+      "achieved_tflops": 0.10399186766173098,
+      "achieved_gbps": 166.38698825876955,
+      "bound": "memory",
+      "percent_of_roof": 20.29109612911824,
+      "ms": 0.40333000015380094
+    },
+    {
+      "shape": [
+        8192,
+        1024
+      ],
+      "impl": "xla",
+      "name": "add+rmsnorm 8192x1024 xla",
+      "flops": 41943040.0,
+      "bytes": 67108864.0,
+      "seconds": 0.0003939544999411737,
+      "intensity_flop_per_byte": 0.625,
+      "achieved_tflops": 0.10646671127316237,
+      "achieved_gbps": 170.3467380370598,
+      "bound": "memory",
+      "percent_of_roof": 20.77399244354388,
+      "ms": 0.3939544999411737
+    },
+    {
+      "shape": [
+        32768,
+        2048
+      ],
+      "impl": "pallas",
+      "name": "add+rmsnorm 32768x2048 pallas",
+      "flops": 335544320.0,
+      "bytes": 536870912.0,
+      "seconds": 0.0010869950001506368,
+      "intensity_flop_per_byte": 0.625,
+      "achieved_tflops": 0.3086898467366455,
+      "achieved_gbps": 493.90375477863273,
+      "bound": "memory",
+      "percent_of_roof": 60.232165216906445,
+      "ms": 1.0869950001506368
+    },
+    {
+      "shape": [
+        32768,
+        2048
+      ],
+      "impl": "xla",
+      "name": "add+rmsnorm 32768x2048 xla",
+      "flops": 335544320.0,
+      "bytes": 536870912.0,
+      "seconds": 0.001469669999778489,
+      "intensity_flop_per_byte": 0.625,
+      "achieved_tflops": 0.22831269608182367,
+      "achieved_gbps": 365.3003137309178,
+      "bound": "memory",
+      "percent_of_roof": 44.54881874767291,
+      "ms": 1.469669999778489
+    },
+    {
+      "shape": [
+        65536,
+        4096
+      ],
+      "impl": "pallas",
+      "name": "add+rmsnorm 65536x4096 pallas",
+      "flops": 1342177280.0,
+      "bytes": 2147483648.0,
+      "seconds": 0.0036188000001402543,
+      "intensity_flop_per_byte": 0.625,
+      "achieved_tflops": 0.3708901514170391,
+      "achieved_gbps": 593.4242422672626,
+      "bound": "memory",
+      "percent_of_roof": 72.368810032593,
+      "ms": 3.6188000001402543
+    },
+    {
+      "shape": [
+        65536,
+        4096
+      ],
+      "impl": "xla",
+      "name": "add+rmsnorm 65536x4096 xla",
+      "flops": 1342177280.0,
+      "bytes": 2147483648.0,
+      "seconds": 0.00508297450005557,
+      "intensity_flop_per_byte": 0.625,
+      "achieved_tflops": 0.2640535143320759,
+      "achieved_gbps": 422.4856229313215,
+      "bound": "memory",
+      "percent_of_roof": 51.52263694284409,
+      "ms": 5.08297450005557
+    }
+  ],
+  "attention": [
+    {
+      "shape": [
+        4,
+        8,
+        1024,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd",
+      "name": "attn fwd b4 h8 s1024 d128 pallas",
+      "flops": 8589934592.0,
+      "bytes": 33554432.0,
+      "seconds": 0.000964354999950956,
+      "intensity_flop_per_byte": 256.0,
+      "achieved_tflops": 8.907440302001707,
+      "achieved_gbps": 34.79468867969417,
+      "bound": "compute",
+      "percent_of_roof": 4.5215433005084815,
+      "ms": 0.964354999950956
+    },
+    {
+      "shape": [
+        4,
+        8,
+        1024,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd",
+      "name": "attn fwd b4 h8 s1024 d128 xla",
+      "flops": 8589934592.0,
+      "bytes": 33554432.0,
+      "seconds": 0.0006617049998567381,
+      "intensity_flop_per_byte": 256.0,
+      "achieved_tflops": 12.981516829795387,
+      "achieved_gbps": 50.70905011638823,
+      "bound": "compute",
+      "percent_of_roof": 6.589602451672786,
+      "ms": 0.6617049998567381
+    },
+    {
+      "shape": [
+        4,
+        8,
+        1024,
+        128
+      ],
+      "impl": "jax-official-pallas",
+      "pass": "fwd",
+      "name": "attn fwd b4 h8 s1024 d128 jax-official-pallas",
+      "flops": 8589934592.0,
+      "bytes": 33554432.0,
+      "seconds": 0.0009528499999760243,
+      "intensity_flop_per_byte": 256.0,
+      "achieved_tflops": 9.014991438543465,
+      "achieved_gbps": 35.214810306810406,
+      "bound": "compute",
+      "percent_of_roof": 4.576137786062673,
+      "ms": 0.9528499999760243
+    },
+    {
+      "shape": [
+        4,
+        8,
+        1024,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b4 h8 s1024 d128 pallas",
+      "flops": 30064771072.0,
+      "bytes": 100663296.0,
+      "seconds": 0.002232834500091485,
+      "intensity_flop_per_byte": 298.6666666666667,
+      "achieved_tflops": 13.46484527660611,
+      "achieved_gbps": 45.0831873100651,
+      "bound": "compute",
+      "percent_of_roof": 6.834946840916808,
+      "ms": 2.232834500091485
+    },
+    {
+      "shape": [
+        4,
+        8,
+        1024,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b4 h8 s1024 d128 xla",
+      "flops": 30064771072.0,
+      "bytes": 100663296.0,
+      "seconds": 0.001349160000017946,
+      "intensity_flop_per_byte": 298.6666666666667,
+      "achieved_tflops": 22.28406643511525,
+      "achieved_gbps": 74.6118295818591,
+      "bound": "compute",
+      "percent_of_roof": 11.31170885031231,
+      "ms": 1.349160000017946
+    },
+    {
+      "shape": [
+        4,
+        8,
+        2048,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd",
+      "name": "attn fwd b4 h8 s2048 d128 pallas",
+      "flops": 34359738368.0,
+      "bytes": 67108864.0,
+      "seconds": 0.0030141795000417915,
+      "intensity_flop_per_byte": 512.0,
+      "achieved_tflops": 11.39936701431471,
+      "achieved_gbps": 22.264388699833415,
+      "bound": "compute",
+      "percent_of_roof": 5.786480717926249,
+      "ms": 3.0141795000417915
+    },
+    {
+      "shape": [
+        4,
+        8,
+        2048,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd",
+      "name": "attn fwd b4 h8 s2048 d128 xla",
+      "flops": 34359738368.0,
+      "bytes": 67108864.0,
+      "seconds": 0.0018273399998633977,
+      "intensity_flop_per_byte": 512.0,
+      "achieved_tflops": 18.803144664139435,
+      "achieved_gbps": 36.72489192214733,
+      "bound": "compute",
+      "percent_of_roof": 9.544743484334738,
+      "ms": 1.8273399998633977
+    },
+    {
+      "shape": [
+        4,
+        8,
+        2048,
+        128
+      ],
+      "impl": "jax-official-pallas",
+      "pass": "fwd",
+      "name": "attn fwd b4 h8 s2048 d128 jax-official-pallas",
+      "flops": 34359738368.0,
+      "bytes": 67108864.0,
+      "seconds": 0.002932414500037339,
+      "intensity_flop_per_byte": 512.0,
+      "achieved_tflops": 11.717217455977826,
+      "achieved_gbps": 22.885190343706693,
+      "bound": "compute",
+      "percent_of_roof": 5.947826119785699,
+      "ms": 2.932414500037339
+    },
+    {
+      "shape": [
+        4,
+        8,
+        2048,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b4 h8 s2048 d128 pallas",
+      "flops": 120259084288.0,
+      "bytes": 201326592.0,
+      "seconds": 0.008222204000048805,
+      "intensity_flop_per_byte": 597.3333333333334,
+      "achieved_tflops": 14.626137260433598,
+      "achieved_gbps": 24.48572086010089,
+      "bound": "compute",
+      "percent_of_roof": 7.424435157580507,
+      "ms": 8.222204000048805
+    },
+    {
+      "shape": [
+        4,
+        8,
+        2048,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b4 h8 s2048 d128 xla",
+      "flops": 120259084288.0,
+      "bytes": 201326592.0,
+      "seconds": 0.005513439499964079,
+      "intensity_flop_per_byte": 597.3333333333334,
+      "achieved_tflops": 21.811989464794802,
+      "achieved_gbps": 36.51560736293772,
+      "bound": "compute",
+      "percent_of_roof": 11.072075870454213,
+      "ms": 5.513439499964079
+    },
+    {
+      "shape": [
+        2,
+        8,
+        4096,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd",
+      "name": "attn fwd b2 h8 s4096 d128 pallas",
+      "flops": 68719476736.0,
+      "bytes": 67108864.0,
+      "seconds": 0.005547739500116222,
+      "intensity_flop_per_byte": 1024.0,
+      "achieved_tflops": 12.386932864198178,
+      "achieved_gbps": 12.096614125193533,
+      "bound": "compute",
+      "percent_of_roof": 6.28778317979603,
+      "ms": 5.547739500116222
+    },
+    {
+      "shape": [
+        2,
+        8,
+        4096,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd",
+      "name": "attn fwd b2 h8 s4096 d128 xla",
+      "flops": 68719476736.0,
+      "bytes": 67108864.0,
+      "seconds": 0.008135328499975003,
+      "intensity_flop_per_byte": 1024.0,
+      "achieved_tflops": 8.447043869981544,
+      "achieved_gbps": 8.249066279278852,
+      "bound": "compute",
+      "percent_of_roof": 4.287839527909414,
+      "ms": 8.135328499975003
+    },
+    {
+      "shape": [
+        2,
+        8,
+        4096,
+        128
+      ],
+      "impl": "jax-official-pallas",
+      "pass": "fwd",
+      "name": "attn fwd b2 h8 s4096 d128 jax-official-pallas",
+      "flops": 68719476736.0,
+      "bytes": 67108864.0,
+      "seconds": 0.005432349499869815,
+      "intensity_flop_per_byte": 1024.0,
+      "achieved_tflops": 12.650047044588506,
+      "achieved_gbps": 12.353561566980963,
+      "bound": "compute",
+      "percent_of_roof": 6.421343677456095,
+      "ms": 5.432349499869815
+    },
+    {
+      "shape": [
+        2,
+        8,
+        4096,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b2 h8 s4096 d128 pallas",
+      "flops": 240518168576.0,
+      "bytes": 201326592.0,
+      "seconds": 0.015366018000122494,
+      "intensity_flop_per_byte": 1194.6666666666667,
+      "achieved_tflops": 15.652602292544668,
+      "achieved_gbps": 13.10206665112556,
+      "bound": "compute",
+      "percent_of_roof": 7.945483397230797,
+      "ms": 15.366018000122494
+    },
+    {
+      "shape": [
+        2,
+        8,
+        4096,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b2 h8 s4096 d128 xla",
+      "flops": 240518168576.0,
+      "bytes": 201326592.0,
+      "seconds": 0.014980828000034307,
+      "intensity_flop_per_byte": 1194.6666666666667,
+      "achieved_tflops": 16.05506508555129,
+      "achieved_gbps": 13.438949569378872,
+      "bound": "compute",
+      "percent_of_roof": 8.149779231244311,
+      "ms": 14.980828000034307
+    },
+    {
+      "shape": [
+        1,
+        8,
+        8192,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd",
+      "name": "attn fwd b1 h8 s8192 d128 pallas",
+      "flops": 137438953472.0,
+      "bytes": 67108864.0,
+      "seconds": 0.010414784500198948,
+      "intensity_flop_per_byte": 2048.0,
+      "achieved_tflops": 13.196523986586048,
+      "achieved_gbps": 6.443615227825219,
+      "bound": "compute",
+      "percent_of_roof": 6.698743140399009,
+      "ms": 10.414784500198948
+    },
+    {
+      "shape": [
+        1,
+        8,
+        8192,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd",
+      "name": "attn fwd b1 h8 s8192 d128 xla",
+      "flops": 137438953472.0,
+      "bytes": 67108864.0,
+      "seconds": 0.22502181049981118,
+      "intensity_flop_per_byte": 2048.0,
+      "achieved_tflops": 0.6107805868538922,
+      "achieved_gbps": 0.2982327084247521,
+      "bound": "compute",
+      "percent_of_roof": 0.31004090703243264,
+      "ms": 225.02181049981118
+    },
+    {
+      "shape": [
+        1,
+        8,
+        8192,
+        128
+      ],
+      "impl": "jax-official-pallas",
+      "pass": "fwd",
+      "name": "attn fwd b1 h8 s8192 d128 jax-official-pallas",
+      "flops": 137438953472.0,
+      "bytes": 67108864.0,
+      "seconds": 0.010220739000033063,
+      "intensity_flop_per_byte": 2048.0,
+      "achieved_tflops": 13.447066153587857,
+      "achieved_gbps": 6.565950270306571,
+      "bound": "compute",
+      "percent_of_roof": 6.825921905374547,
+      "ms": 10.220739000033063
+    },
+    {
+      "shape": [
+        1,
+        8,
+        8192,
+        128
+      ],
+      "impl": "pallas",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b1 h8 s8192 d128 pallas",
+      "flops": 481036337152.0,
+      "bytes": 201326592.0,
+      "seconds": 0.02878514200006066,
+      "intensity_flop_per_byte": 2389.3333333333335,
+      "achieved_tflops": 16.71127198715873,
+      "achieved_gbps": 6.994114949982729,
+      "bound": "compute",
+      "percent_of_roof": 8.48287918129885,
+      "ms": 28.78514200006066
+    },
+    {
+      "shape": [
+        1,
+        8,
+        8192,
+        128
+      ],
+      "impl": "xla",
+      "pass": "fwd+bwd",
+      "name": "attn fwd+bwd b1 h8 s8192 d128 xla",
+      "flops": 481036337152.0,
+      "bytes": 201326592.0,
+      "seconds": 0.23851418549998016,
+      "intensity_flop_per_byte": 2389.3333333333335,
+      "achieved_tflops": 2.016803890064811,
+      "achieved_gbps": 0.8440864495248932,
+      "bound": "compute",
+      "percent_of_roof": 1.0237583198298534,
+      "ms": 238.51418549998016
+    }
+  ],
+  "hlo_flash_attention_fwd": {
+    "name": "flash_attention_fwd",
+    "n_fusions": 0,
+    "n_custom_calls": 1,
+    "n_pallas_calls": 1,
+    "n_all_reduce": 0,
+    "n_all_gather": 0,
+    "n_reduce_scatter": 0,
+    "n_copies": 0,
+    "cost": {
+      "transcendentals": 16777216.0,
+      "bytes accessed0{}": 8388608.0,
+      "bytes accessed": 25165824.0,
+      "flops": 8589934592.0,
+      "bytes accessed2{}": 8388608.0,
+      "bytes accessedout{}": 25165824.0,
+      "utilization0{}": 2.0,
+      "utilization1{}": 1.0,
+      "optimal_seconds": 4.360372986411676e-05,
+      "utilization2{}": 1.0,
+      "bytes accessed1{}": 8388608.0
+    },
+    "memory": {
+      "argument_size_in_bytes": 25165824,
+      "output_size_in_bytes": 8388608,
+      "temp_size_in_bytes": 16809472,
+      "generated_code_size_in_bytes": 70144
+    },
+    "hlo_lines": 43
+  }
+}
