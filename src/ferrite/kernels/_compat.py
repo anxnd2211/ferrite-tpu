@@ -15,12 +15,14 @@ def compiler_params(dimension_semantics, **kw):
 
 
 def dot_precision(dtype):
-    """f32 operands get a true fp32 MXU contraction; bf16 operands use the single-pass default.
+    """f32 operands get a true fp32 MXU contraction; everything else the single-pass default.
 
-    Without this, an f32 matmul on TPU is one bf16 pass (DEFAULT precision), which is
-    fine for training but makes f32 reference tests meaningless.
+    Always explicit, never ``None``: inside a kernel ``precision=None`` inherits the
+    process-wide ``jax_default_matmul_precision``, and a caller who set that to
+    "highest" (as the test-suite does for its f32 references) would make Mosaic try an
+    fp32 contraction on bf16 operands, which it cannot legalize.
     """
-    return lax.Precision.HIGHEST if jnp.dtype(dtype) == jnp.float32 else None
+    return lax.Precision.HIGHEST if jnp.dtype(dtype) == jnp.float32 else lax.Precision.DEFAULT
 
 
 def round_up(x: int, m: int) -> int:
